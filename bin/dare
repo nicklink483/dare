@@ -5,14 +5,15 @@ class DareCLI < Thor
   include Thor::Actions
   desc "new", "creates a new app"
   def new(app_name)
-    add_file("#{app_name}/Gemfile") do
+    @app_name = app_name.gsub('-', '_')
+    add_file("#{@app_name}/Gemfile") do
       "source 'http://rubygems.org'
 gem 'dare', '0.2.0'
 gem 'opal', '0.7.0beta3'
 gem 'opal-jquery', '0.3.0beta1'"
     end
-    add_file "#{app_name}/Rakefile" do
-"desc \"Build #{app_name}.js\"
+    add_file "#{@app_name}/Rakefile" do
+"desc \"Build #{@app_name}.js\"
 task :build do
   gem 'dare', '0.2.0'
   gem 'opal', '0.7.0beta3'
@@ -28,15 +29,15 @@ task :build do
   env.append_path \".\"
   env.append_path `bundle show dare`.chomp + '/lib'
 
-  File.open(\"#{app_name}.js\", \"w+\") do |out|
-    out << env[\"#{app_name}\"].to_s
+  File.open(\"#{@app_name}.js\", \"w+\") do |out|
+    out << env[\"#{@app_name}\"].to_s
   end
 end"
     end
-    add_file "#{app_name}/#{app_name}.rb" do
+    add_file "#{@app_name}/#{@app_name}.rb" do
 "require 'dare'
 
-class #{app_name[0].upcase + app_name[1..-1]} < Dare::Window
+class #{normalized_class} < Dare::Window
 
   def initialize
     super width: 640, height: 480, border: true
@@ -52,9 +53,9 @@ class #{app_name[0].upcase + app_name[1..-1]} < Dare::Window
 
 end
 
-#{app_name[0].upcase + app_name[1..-1]}.new.run!"
+#{normalized_class}.new.run!"
     end
-    add_file "#{app_name}/#{app_name}.html" do
+    add_file "#{@app_name}/#{@app_name}.html" do
 "<!DOCTYPE html>
 <html>
   <head>
@@ -65,9 +66,15 @@ end
     <!-- <script src=\"http://cdn.opalrb.org/opal/0.7.0/opal.min.js\"></script> -->
   </head>
   <body>
-    <script src=\"#{app_name}.js\"></script>
+    <script src=\"#{@app_name}.js\"></script>
   </body>
 </html>"
+    end
+  end
+
+  no_commands do
+    def normalized_class
+      "#{@app_name[0].upcase + @app_name[1..-1]}"
     end
   end
 end
